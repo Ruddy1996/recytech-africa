@@ -5,7 +5,7 @@ const QRCode = require('qrcode');
 
 
 const User = {
-  async create({ full_name, email, password }) {
+  async create({ full_name, email, password, role }) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const id = uuidv4();
     const qr_code_id = uuidv4(); // ID unique
@@ -14,18 +14,18 @@ const User = {
     const qr_code_data = await QRCode.toDataURL(qr_code_id);
 
     const result = await db.query(
-        `INSERT INTO users (id, full_name, email, password, qr_code_id, qr_code_image)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id, full_name, email, qr_code_id, qr_code_image, points`,
-        [id, full_name, email, hashedPassword, qr_code_id, qr_code_data]
-    );
+    `INSERT INTO users (id, full_name, email, password, qr_code_id, qr_code_image, role)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id, full_name, email, qr_code_id, qr_code_image, points, role`,
+    [id, full_name, email, hashedPassword, qr_code_id, qr_code_data, role]
+  );
 
     return result.rows[0];
 },
 
   async findByEmail(email) {
     const result = await db.query(
-      `SELECT * FROM users WHERE email = $1`,
+      'SELECT id, email, password, full_name FROM users WHERE email = $1',
       [email]
     );
     return result.rows[0];
@@ -40,6 +40,14 @@ const User = {
   },
 
   async linkNFC(user_id, nfc_uid) {
+
+    const existing = await db.query(
+    `SELECT * FROM users WHERE nfc_uid = $1 AND id != $2`,
+    [nfc_uid, user_id]
+    );
+    if (existing.rows.length > 0) {
+      throw new Error('Cette carte NFC est déjà liée à un autre utilisateur.');
+    }
     const result = await db.query(
         `UPDATE users SET nfc_uid = $1 WHERE id = $2 RETURNING *`,
         [nfc_uid, user_id]
