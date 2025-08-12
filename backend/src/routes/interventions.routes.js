@@ -7,22 +7,23 @@ const validate = require('../middlewares/validate.middleware');
 const interventionSchema = require('../validators/intervention.schema');
 
 // ➕ Créer une intervention
-router.post('/', authenticateToken, authorizeRoles('admin'), validate(interventionSchema), interventionsBorneController.createInterventionBorne);
+router.post('/', authenticateToken, authorizeRoles('Admin'), validate(interventionSchema), interventionsBorneController.create);
 
 // 📄 Récupérer toutes les interventions
-router.get('/', authenticateToken, authorizeRoles('admin'), interventionsBorneController.getAllInterventionsBorne);
+router.get('/', authenticateToken, authorizeRoles('Admin'), interventionsBorneController.list);
 
 // 🔍 Récupérer une intervention par ID
-router.get('/:id', authenticateToken, authorizeRoles('admin'), interventionsBorneController.getInterventionBorneById);
+router.get('/:id', authenticateToken, authorizeRoles('Admin'), interventionsBorneController.detail);
 
 // ✏️ Mettre à jour une intervention
-router.put('/:id', authenticateToken, authorizeRoles('admin'), validate(interventionSchema), interventionsBorneController.updateInterventionBorne);
+router.put('/:id', authenticateToken, authorizeRoles('Admin'), validate(interventionSchema), interventionsBorneController.update);
 
 // 🗑️ Supprimer une intervention
-router.delete('/:id', authenticateToken, authorizeRoles('admin'), interventionsBorneController.deleteInterventionBorne);
+router.delete('/:id', authenticateToken, authorizeRoles('Admin'), interventionsBorneController.remove);
 
 // 🔍 Récupérer toutes les interventions liées à une borne
-router.get('/borne/:borneId', authenticateToken, authorizeRoles('admin'), interventionsBorneController.getInterventionsByBorneId);
-router.get('/filter', authenticateToken, authorizeRoles('admin'), interventionsBorneController.getFilteredInterventions);
+router.get('/borne/:borneId', authenticateToken, authorizeRoles('Admin'), interventionsBorneController.byBorne);
+
+
 
 module.exports = router;

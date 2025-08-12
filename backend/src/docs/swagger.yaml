@@ -31,6 +31,25 @@ components:
           type: boolean
           example: true
     
+    Depot:
+      type: object
+      properties:
+        id:
+          type: string
+        utilisateur_id:
+          type: string
+        borne_id:
+          type: string
+        poids:
+          type: number
+        type_dechet:
+          type: string
+        points:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
     Client:
       type: object
       properties:
@@ -115,6 +134,98 @@ components:
           type: string
           enum: [en_cours, termine, resilie]
 
+    Pays:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        nom: { type: string }
+        continent: { type: string }
+        actif: { type: boolean }
+        created_at: { type: string, format: date-time }
+    PaysInput:
+      type: object
+      required: [code, nom, continent]
+      properties:
+        code: { type: string }
+        nom: { type: string }
+        continent: { type: string }
+        actif: { type: boolean }
+
+    PlanTarifaire:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        description:
+          type: string
+        prix_mensuel:
+          type: integer
+        nb_utilisateurs:
+          type: integer
+        acces_data:
+          type: boolean
+        acces_alertes:
+          type: boolean
+        acces_export:
+          type: boolean
+
+    Abonnement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organisation_nom:
+          type: string
+        organisation_type:
+          type: string
+        email_contact:
+          type: string
+        telephone_contact:
+          type: string
+        date_debut:
+          type: string
+          format: date-time
+        date_fin:
+          type: string
+          format: date-time
+        statut:
+          type: string
+        plan_tarifaire:
+          type: string
+        user_admin_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    AbonnementCreation:
+      type: object
+      required:
+        - organisation_nom
+        - organisation_type
+        - plan_tarifaire
+      properties:
+        organisation_nom:
+          type: string
+        organisation_type:
+          type: string
+          enum: [mairie, école, entreprise, ong]
+        email_contact:
+          type: string
+        telephone_contact:
+          type: string
+        date_fin:
+          type: string
+          format: date-time
+        plan_tarifaire:
+          type: string
+          
     InterventionBorne:
       type: object
       properties:
@@ -181,6 +292,166 @@ components:
         statut:
           type: string
           enum: [planifiee, terminee]
+    
+    Alerte:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        borne_id:
+          type: string
+          format: uuid
+        type_alerte:
+          type: string
+          example: "bac plein"
+        message:
+          type: string
+          example: "La borne est pleine à 95%"
+        niveau:
+          type: string
+          enum: [info, warning, danger]
+        est_resolue:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    AlerteCreation:
+      type: object
+      required:
+        - borne_id
+        - type_alerte
+        - message
+      properties:
+        borne_id:
+          type: string
+          format: uuid
+        type_alerte:
+          type: string
+          example: "capteur inactif"
+        message:
+          type: string
+          example: "Aucune donnée reçue depuis 1 heure"
+        niveau:
+          type: string
+          enum: [info, warning, danger]
+    
+    Ville:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        pays_id:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        code_postal:
+          type: string
+        latitude:
+          type: number
+          format: float
+        longitude:
+          type: number
+          format: float
+        actif:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    VilleInput:
+      type: object
+      required:
+        - pays_id
+        - nom
+      properties:
+        pays_id:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        code_postal:
+          type: string
+        latitude:
+          type: number
+          format: float
+        longitude:
+          type: number
+          format: float
+        actif:
+          type: boolean
+          
+    Recompense:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        titre:
+          type: string
+        description:
+          type: string
+        points_requis:
+          type: integer
+        image_url:
+          type: string
+        stock:
+          type: integer
+        actif:
+          type: boolean
+        type:
+          type: string
+          example: "airtime"
+        categorie:
+          type: string
+          example: "transport"
+        partenaire:
+          type: string
+          example: "Airtel"
+        valid_from:
+          type: string
+          format: date-time
+        valid_to:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    RecompenseInput:
+      type: object
+      properties:
+        titre:
+          type: string
+        description:
+          type: string
+        points_requis:
+          type: integer
+        image_url:
+          type: string
+        stock:
+          type: integer
+        actif:
+          type: boolean
+        type:
+          type: string
+          example: "physique"
+        categorie:
+          type: string
+        partenaire:
+          type: string
+        valid_from:
+          type: string
+          format: date-time
+        valid_to:
+          type: string
+          format: date-time
   
     Error:
       type: object
@@ -235,6 +506,8 @@ paths:
                 email:
                   type: string
                 password:
+                  type: string
+                role:
                   type: string
       responses:
         '200':
@@ -641,6 +914,45 @@ paths:
           description: Client supprimé
         '404':
           description: Client non trouvé
+  
+  /api/clients/filter:
+    get:
+      tags:
+        - Clients
+      summary: Filtrer les clients
+      description: Retourne la liste des clients en fonction de critères (nom, email, type, téléphone).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: nom
+          schema:
+            type: string
+        - in: query
+          name: email
+          schema:
+            type: string
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [public, privé, institutionnel] # ou selon tes types réels
+        - in: query
+          name: telephone
+          schema:
+            type: string
+      responses:
+        200:
+          description: Liste filtrée des clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+        500:
+          description: Erreur serveur
+
 
   /api/contrats:
     get:
@@ -1034,3 +1346,1593 @@ paths:
           description: Borne supprimée avec succès
         '500':
           description: Erreur serveur
+  
+  /communes:
+    get:
+      summary: Liste toutes les communes
+      tags:
+        - Communes
+      responses:
+        '200':
+          description: Liste des communes
+    post:
+      summary: Créer une commune
+      tags:
+        - Communes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                ville_id:
+                  type: string
+                actif:
+                  type: boolean
+      responses:
+        '201':
+          description: Commune créée
+  /communes/{id}:
+    get:
+      summary: Récupère une commune par ID
+      tags:
+        - Communes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Commune trouvée
+        '404':
+          description: Commune non trouvée
+    put:
+      summary: Met à jour une commune
+      tags:
+        - Communes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                ville_id:
+                  type: string
+                actif:
+                  type: boolean
+      responses:
+        '200':
+          description: Commune mise à jour
+    delete:
+      summary: Supprime une commune
+      tags:
+        - Communes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Commune supprimée
+  
+  /quartiers:
+    get:
+      tags:
+        - Quartiers
+      summary: Liste tous les quartiers
+      responses:
+        '200':
+          description: Liste des quartiers récupérée avec succès
+    post:
+      tags:
+        - Quartiers
+      summary: Crée un nouveau quartier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nom
+                - commune_id
+              properties:
+                nom:
+                  type: string
+                commune_id:
+                  type: string
+                  format: uuid
+                actif:
+                  type: boolean
+      responses:
+        '201':
+          description: Quartier créé avec succès
+
+  /quartiers/{id}:
+    get:
+      tags:
+        - Quartiers
+      summary: Récupère un quartier par ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Quartier trouvé
+    put:
+      tags:
+        - Quartiers
+      summary: Met à jour un quartier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                commune_id:
+                  type: string
+                  format: uuid
+                actif:
+                  type: boolean
+      responses:
+        '200':
+          description: Quartier mis à jour avec succès
+    delete:
+      tags:
+        - Quartiers
+      summary: Supprime un quartier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Quartier supprimé avec succès
+          
+  /api/capteurs:
+    post:
+      tags:
+        - Capteurs
+      summary: Ajouter un log capteur pour une borne
+      description: |
+        Enregistre une nouvelle mesure (niveau, humidité, position, date) pour une borne donnée, et met à jour les données en temps réel via WebSocket.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                borne_id:
+                  type: string
+                  format: uuid
+                  example: "c56a4180-65aa-42ec-a945-5fd21dec0538"
+                niveau_remplissage:
+                  type: number
+                  example: 75.5
+                humidite:
+                  type: number
+                  example: 35.8
+                latitude:
+                  type: number
+                  example: -1.957875
+                longitude:
+                  type: number
+                  example: 30.059482
+                recorded_at:
+                  type: string
+                  format: date-time
+                  example: "2025-06-11T14:45:00Z"
+              required:
+                - borne_id
+                - niveau_remplissage
+                - humidite
+                - latitude
+                - longitude
+      responses:
+        "201":
+          description: Log capteur enregistré avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  borne_id:
+                    type: string
+                    format: uuid
+                  niveau_remplissage:
+                    type: number
+                  humidite:
+                    type: number
+                  latitude:
+                    type: number
+                  longitude:
+                    type: number
+                  recorded_at:
+                    type: string
+                    format: date-time
+        "400":
+          description: Données invalides
+        "500":
+          description: Erreur serveur
+  
+    /api/bornes-status:
+    get:
+      tags:
+        - Bornes
+      summary: Récupérer le statut en temps réel de toutes les bornes
+      description: Retourne les dernières données capteurs par borne (niveau, humidité, position, timestamp).
+      responses:
+        "200":
+          description: Liste des statuts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    borne_id:
+                      type: string
+                    code:
+                      type: string
+                    nom:
+                      type: string
+                    niveau_remplissage:
+                      type: number
+                    humidite:
+                      type: number
+                    latitude:
+                      type: number
+                    longitude:
+                      type: number
+                    last_update:
+                      type: string
+                      format: date-time
+        "500":
+          description: Erreur serveur
+  
+  /api/alertes:
+    get:
+      tags:
+        - Alertes
+      summary: Récupérer toutes les alertes
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des alertes récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alerte'
+        '500':
+          description: Erreur serveur
+
+    post:
+      tags:
+        - Alertes
+      summary: Créer une nouvelle alerte
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlerteCreation'
+      responses:
+        '201':
+          description: Alerte créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alerte'
+        '500':
+          description: Erreur serveur
+
+  /api/alertes/{id}/resolve:
+    patch:
+      tags:
+        - Alertes
+      summary: Marquer une alerte comme résolue
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: ID de l’alerte à résoudre
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Alerte résolue avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alerte'
+        '500':
+          description: Erreur serveur
+  
+    /api/clients/filter:
+    get:
+      tags:
+        - Clients
+      summary: Filtrer les clients
+      description: Retourne la liste des clients en fonction de critères (nom, email, type, téléphone).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: nom
+          schema:
+            type: string
+        - in: query
+          name: email
+          schema:
+            type: string
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [public, privé, institutionnel] # ou selon tes types réels
+        - in: query
+          name: telephone
+          schema:
+            type: string
+      responses:
+        200:
+          description: Liste filtrée des clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+        500:
+          description: Erreur serveur
+  
+  /api/depots:
+  post:
+    tags:
+      - Dépôts
+    summary: Enregistrer un dépôt de déchet
+    description: Utilisé par la borne pour enregistrer un dépôt lié à un utilisateur
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              utilisateur_id:
+                type: string
+              borne_id:
+                type: string
+              poids:
+                type: number
+              type_dechet:
+                type: string
+    responses:
+      201:
+        description: Dépôt enregistré
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Depot'
+      500:
+        description: Erreur serveur
+  
+  /api/depots/user/{id}:
+  get:
+    tags:
+      - Dépôts
+    summary: Récupérer tous les dépôts d’un utilisateur
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: Liste des dépôts
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Depot'
+
+  /api/depots/user/{id}/stats:
+  get:
+    tags:
+      - Dépôts
+    summary: Statistiques globales d’un utilisateur
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: Statistiques (total poids, points, nombre de dépôts, etc.)
+  
+  /api/identification/nfc/{uid}:
+  get:
+    tags: [Identification]
+    summary: Identifier un utilisateur via NFC
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: Utilisateur trouvé
+      404:
+        description: Carte non reconnue
+
+  /api/identification/qr/{qr_code_id}:
+  get:
+    tags: [Identification]
+    summary: Identifier un utilisateur via QR code
+    parameters:
+      - name: qr_code_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: Utilisateur trouvé
+      404:
+        description: QR code non reconnu
+
+  /api/stats/depot/global:
+    get:
+      tags:
+        - Statistiques
+      summary: Statistiques globales des dépôts
+      description: Renvoie les statistiques globales de tous les dépôts (poids total, points totaux, nombre de dépôts, etc.).
+      responses:
+        '200':
+          description: Statistiques globales récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_depots:
+                    type: integer
+                  total_poids:
+                    type: number
+                  total_points:
+                    type: integer
+        '500':
+          description: Erreur serveur lors de la récupération des statistiques
+
+  /api/stats/depot/utilisateur/{id}:
+    get:
+      tags:
+        - Statistiques
+      summary: Statistiques d’un utilisateur
+      description: Récupère les statistiques de dépôt d’un utilisateur spécifique
+      parameters:
+        - name: id
+          in: path
+          description: ID de l'utilisateur
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statistiques de l'utilisateur récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_depots:
+                    type: integer
+                  total_poids:
+                    type: number
+                  total_points:
+                    type: integer
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        poids:
+                          type: number
+        '404':
+          description: Utilisateur non trouvé
+        '500':
+          description: Erreur serveur
+
+  /api/stats/depot/utilisateur/{id}/historique:
+    get:
+      tags:
+        - Statistiques
+      summary: Historique des dépôts de l’utilisateur
+      description: Renvoie la liste complète des dépôts effectués par un utilisateur, classés par date décroissante.
+      parameters:
+        - name: id
+          in: path
+          description: ID de l'utilisateur
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Historique des dépôts renvoyé avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    poids:
+                      type: number
+                    type_dechet:
+                      type: string
+                    points:
+                      type: integer
+                    created_at:
+                      type: string
+                      format: date-time
+        '404':
+          description: Utilisateur non trouvé
+        '500':
+          description: Erreur serveur
+  
+  /api/recompenses:
+    get:
+      tags:
+        - Recompenses
+      summary: Récupérer toutes les récompenses
+      responses:
+        200:
+          description: Liste des récompenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recompense'
+
+    post:
+      tags:
+        - Recompenses
+      summary: Créer une nouvelle récompense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecompenseInput'
+      responses:
+        201:
+          description: Récompense créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recompense'
+
+  /api/recompenses/{id}:
+    get:
+      tags:
+        - Recompenses
+      summary: Obtenir une récompense par ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Récompense trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recompense'
+        404:
+          description: Récompense introuvable
+
+    put:
+      tags:
+        - Recompenses
+      summary: Mettre à jour une récompense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecompenseInput'
+      responses:
+        200:
+          description: Récompense mise à jour
+
+    delete:
+      tags:
+        - Recompenses
+      summary: Supprimer une récompense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Récompense supprimée
+
+  /echanges:
+    post:
+      tags:
+        - Echanges Récompenses
+      summary: Créer un nouvel échange de récompense
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recompense_id:
+                  type: string
+                  format: uuid
+                  example: "c66b7f8c-b3cc-4c29-bd4d-9db198f3dce3"
+              required:
+                - recompense_id
+      responses:
+        '201':
+          description: Échange créé avec succès
+        '400':
+          description: Paramètres invalides ou stock/points insuffisants
+        '401':
+          description: Non autorisé
+        '500':
+          description: Erreur serveur
+
+  /echanges:
+    get:
+      tags:
+        - Echanges Récompenses
+      summary: Obtenir la liste des échanges de l’utilisateur connecté
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des échanges
+        '401':
+          description: Non autorisé
+        '500':
+          description: Erreur serveur
+
+  /echanges/{id}:
+    get:
+      tags:
+        - Echanges Récompenses
+      summary: Obtenir les détails d’un échange par ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Détails de l’échange
+        '404':
+          description: Échange non trouvé
+        '401':
+          description: Non autorisé
+        '500':
+          description: Erreur serveur
+
+  /echanges/admin:
+    get:
+      tags:
+        - Admin - Echanges Récompenses
+      summary: Obtenir tous les échanges (Admin uniquement)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste de tous les échanges
+        '403':
+          description: Accès interdit
+        '500':
+          description: Erreur serveur
+
+  /echanges/{id}/valider:
+      tags:
+        - Admin - Echanges Récompenses
+      summary: Valider ou refuser un échange de récompense
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statut:
+                  type: string
+                  enum: [validé, refusé, expiré]
+                  example: validé
+                details:
+                  type: string
+                  example: "Récompense livrée à l’utilisateur"
+              required:
+                - statut
+      responses:
+        '200':
+          description: Statut de l’échange mis à jour
+        '400':
+          description: Paramètres invalides
+        '401':
+          description: Non autorisé
+        '403':
+          description: Accès interdit (non admin)
+        '404':
+          description: Échange non trouvé
+        '500':
+          description: Erreur serveur
+  
+  /echanges:
+    post:
+      tags:
+        - Echanges
+      summary: Créer un échange de récompense
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - recompense_id
+              properties:
+                recompense_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Échange créé avec succès
+        '400':
+          description: Erreur utilisateur (points insuffisants, stock...)
+        '500':
+          description: Erreur serveur
+
+    get:
+      tags:
+        - Echanges
+      summary: Récupérer tous les échanges (admin uniquement)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des échanges
+        '401':
+          description: Non autorisé
+
+  /echanges/me:
+    get:
+      tags:
+        - Echanges
+      summary: Récupérer les échanges de l'utilisateur connecté
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des échanges de l'utilisateur
+
+  /echanges/{id}:
+    get:
+      tags:
+        - Echanges
+      summary: Récupérer un échange par ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Détail de l'échange
+        '404':
+          description: Échange non trouvé
+
+    delete:
+      tags:
+        - Echanges
+      summary: Supprimer un échange (admin uniquement)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Échange supprimé
+        '401':
+          description: Non autorisé
+
+  /echanges/{id}/statut:
+    patch:
+      tags:
+        - Echanges
+      summary: Mettre à jour le statut d'un échange (admin uniquement)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - statut
+              properties:
+                statut:
+                  type: string
+                  enum: [validé, refusé, expiré]
+                details:
+                  type: string
+      responses:
+        '200':
+          description: Statut mis à jour
+        '404':
+          description: Échange non trouvé
+
+  /echanges/{id}/valider:
+    patch:
+      tags:
+        - Echanges
+      summary: Valider manuellement un échange (admin uniquement)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Échange validé
+        '400':
+          description: Erreur logique ou non valide
+        '404':
+          description: Échange ou utilisateur non trouvé
+  
+  /notifications/me:
+    get:
+      tags: 
+        - Notifications
+      summary: Liste des notifications de l'utilisateur connecté
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+
+  /notifications/{id}/lire:
+    put :
+      tags: 
+        - Notifications
+      summary: Marquer une notification comme lue
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification mise à jour
+  
+
+  /badges:
+    get:
+      tags: 
+        - Badges
+      summary: Liste de tous les badges (admin ou public)
+      responses:
+        '200':
+          description: Liste complète des badges
+  
+    get:
+      tags:
+        - Badges
+      summary: Liste de tous les badges
+      responses:
+        '200':
+          description: Liste des badges
+
+    post:
+      tags:
+        - Badges
+      summary: Créer un badge (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                description:
+                  type: string
+                image_url:
+                  type: string
+                condition_type:
+                  type: string
+                  enum: [echanges_count, points_total]
+                condition_value:
+                  type: integer
+              required: [nom, condition_type, condition_value]
+      responses:
+        '201':
+          description: Badge créé avec succès
+
+  /badges/{id}:
+    put:
+      tags:
+        - Badges
+      summary: Mettre à jour un badge (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                description:
+                  type: string
+                image_url:
+                  type: string
+                condition_type:
+                  type: string
+                condition_value:
+                  type: integer
+      responses:
+        '200':
+          description: Badge mis à jour
+
+    delete:
+      tags:
+        - Badges
+      summary: Supprimer un badge (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Badge supprimé
+
+  /badges/me:
+    get:
+      tags:
+        - Badges
+      summary: Récupérer les badges de l'utilisateur connecté
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des badges utilisateur
+  
+  /tirages:
+    post:
+      tags:
+        - Tirages
+      summary: Créer un nouveau tirage au sort
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                titre:
+                  type: string
+                description:
+                  type: string
+                date_fin:
+                  type: string
+                  format: date-time
+              required: [titre, date_fin]
+      responses:
+        201:
+          description: Tirage créé avec succès
+        400:
+          description: Données invalides
+        500:
+          description: Erreur serveur
+
+    get:
+      tags:
+        - Tirages
+      summary: Obtenir tous les tirages (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Liste des tirages
+        500:
+          description: Erreur serveur
+
+  /tirages/{id}/participer:
+    post:
+      tags:
+        - Tirages
+      summary: Participer à un tirage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Participation enregistrée
+        400:
+          description: Déjà inscrit ou tirage terminé
+        404:
+          description: Tirage introuvable
+        500:
+          description: Erreur serveur
+
+  /tirages/me:
+    get:
+      tags:
+        - Tirages
+      summary: Voir mes participations aux tirages
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Liste des tirages avec participation
+        500:
+          description: Erreur serveur
+
+  /tirages/{id}/tirer:
+    post:
+      tags:
+        - Tirages
+      summary: Tirer au sort un gagnant
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Gagnant désigné
+        400:
+          description: Pas de participants ou tirage déjà effectué
+        404:
+          description: Tirage introuvable
+        500:
+          description: Erreur serveur
+  
+  /tirages/public/actifs:
+    get:
+      tags:
+        - Tirages Publics
+      summary: Liste des tirages actifs (public)
+      responses:
+        '200':
+          description: Liste des tirages actifs
+        '500':
+          description: Erreur serveur
+
+  /tirages/{id}/resultat:
+    get:
+      tags:
+        - Tirages Publics
+      summary: Résultat d’un tirage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Résultat du tirage
+        '404':
+          description: Aucune participation ou tirage inconnu
+        '500':
+          description: Erreur serveur
+
+  /abonnements/plans:
+    get:
+      summary: Récupérer tous les plans tarifaires disponibles
+      tags: [Abonnements]
+      responses:
+        200:
+          description: Liste des plans tarifaires
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlanTarifaire'
+
+  /abonnements:
+    post:
+      summary: Souscrire à un abonnement (autorité/entreprise)
+      tags: [Abonnements]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbonnementCreation'
+      responses:
+        201:
+          description: Abonnement créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Abonnement'
+
+    get:
+      summary: Récupérer tous les abonnements (admin)
+      tags: [Abonnements]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Liste des abonnements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Abonnement'
+
+  /abonnements/me:
+    get:
+      summary: Voir mes propres abonnements
+      tags: [Abonnements]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Liste des abonnements de l'utilisateur connecté
+  
+  /paiements-abonnements/init:
+    post:
+      tags:
+        - Paiements Abonnements
+      summary: Initier un paiement d’abonnement
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                abonnement_id:
+                  type: string
+                montant:
+                  type: number
+              required:
+                - abonnement_id
+                - montant
+      responses:
+        '200':
+          description: Paiement initié avec succès
+        '500':
+          description: Erreur serveur
+
+  /paiements-abonnements/callback:
+    post:
+      tags:
+        - Paiements Abonnements
+      summary: Callback automatique CinetPay
+      description: Reçoit la notification de paiement de CinetPay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transaction_id:
+                  type: string
+              required:
+                - transaction_id
+      responses:
+        '200':
+          description: Paiement mis à jour avec succès
+        '500':
+          description: Erreur serveur
+
+  /paiements-abonnements:
+    get:
+      tags:
+        - Paiements Abonnements
+      summary: Lister tous les paiements (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des paiements
+        '403':
+          description: Accès refusé
+        '500':
+          description: Erreur serveur
+
+  /paiements-abonnements/abonnement/{abonnement_id}:
+    get:
+      tags:
+        - Paiements Abonnements
+      summary: Lister les paiements d’un abonnement donné
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: abonnement_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste des paiements de l’abonnement
+        '404':
+          description: Abonnement non trouvé
+        '500':
+          description: Erreur serveur
+
+  /paiements-abonnements/transaction/{transaction_id}:
+    get:
+      tags:
+        - Paiements Abonnements
+      summary: Détails d’un paiement par transaction_id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails du paiement
+        '404':
+          description: Paiement non trouvé
+        '500':
+          description: Erreur serveur
+  
+  /pays:
+    get:
+      summary: Liste tous les pays
+      tags: [Pays]
+      responses:
+        '200':
+          description: Liste des pays
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pays'
+    post:
+      summary: Crée un pays
+      tags: [Pays]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaysInput'
+      responses:
+        '201':
+          description: Pays créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pays'
+
+  /pays/{id}:
+    get:
+      summary: Récupère un pays par son ID
+      tags: [Pays]
+      parameters:
+        - in: path
+          name: id
+          schema: { type: string }
+          required: true
+          description: ID du pays (UUID)
+      responses:
+        '200':
+          description: Détails du pays
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pays'
+        '404': { description: Pays non trouvé }
+    put:
+      summary: Met à jour un pays
+      tags: [Pays]
+      parameters:
+        - in: path
+          name: id
+          schema: { type: string }
+          required: true
+          description: ID du pays (UUID)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaysInput'
+      responses:
+        '200':
+          description: Pays mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pays'
+        '404': { description: Pays non trouvé }
+    delete:
+      summary: Supprime un pays
+      tags: [Pays]
+      parameters:
+        - in: path
+          name: id
+          schema: { type: string }
+          required: true
+          description: ID du pays (UUID)
+      responses:
+        '200': { description: Pays supprimé }
+        '404': { description: Pays non trouvé }
+  
+  /villes:
+    get:
+      summary: Liste toutes les villes
+      tags:
+        - Villes
+      responses:
+        '200':
+          description: Liste des villes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ville'
+    post:
+      summary: Créer une nouvelle ville
+      tags:
+        - Villes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VilleInput'
+      responses:
+        '201':
+          description: Ville créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ville'
+
+  /villes/{id}:
+    get:
+      summary: Récupère une ville par son ID
+      tags:
+        - Villes
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: UUID de la ville
+      responses:
+        '200':
+          description: Détails de la ville
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ville'
+        '404':
+          description: Ville non trouvée
+    put:
+      summary: Met à jour une ville
+      tags:
+        - Villes
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: UUID de la ville
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VilleInput'
+      responses:
+        '200':
+          description: Ville mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ville'
+        '404':
+          description: Ville non trouvée
+    delete:
+      summary: Supprime une ville
+      tags:
+        - Villes
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: UUID de la ville
+      responses:
+        '200':
+          description: Ville supprimée
+        '404':
+          description: Ville non trouvée
+
+  /villes/pays/{paysId}:
+    get:
+      summary: Liste toutes les villes d'un pays donné
+      tags:
+        - Villes
+      parameters:
+        - in: path
+          name: paysId
+          required: true
+          schema:
+            type: string
+          description: UUID du pays
+      responses:
+        '200':
+          description: Liste des villes du pays
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ville'

@@ -37,6 +37,10 @@ exports.login = async (req, res) => {
   try {
     const user = await User.findByEmail(email);
     if (!user) return res.status(401).json({ message: "Email ou mot de passe incorrect" });
+    /* Compte désactivé ? */
+    if (!user.is_active) {
+      return res.status(403).json({ message: 'Votre compte est désactivé. Veuillez contacter un administrateur.' });
+    }
 
     console.log('Utilisateur trouvé :', user);
     const isMatch = await bcrypt.compare(password, user.password);
