@@ -4,10 +4,9 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { CheckCircle, RefreshCw } from "lucide-react";
 import { Dialog, Transition } from "@headlessui/react";
-import io from "socket.io-client";
+import { initSocket } from '../socket'; // ✅ import correct
 
 const API = "http://localhost:5000/api/alerte-borne";
-const SOCKET_URL = "http://localhost:5000";
 const authH = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 
 const COULEURS = {
@@ -22,7 +21,12 @@ export default function AlertesAdmin() {
 
   useEffect(() => {
     load();
-    const socket = io(SOCKET_URL);
+
+    // ✅ init socket
+    const socket = initSocket();
+
+    socket.on("connect", () => console.log("✅ Socket connecté", socket.id));
+    socket.on("disconnect", () => console.log("🔴 Socket déconnecté", socket.id));
 
     socket.on("new_alerte", (alerte) => {
       toast.success("Nouvelle alerte reçue");
@@ -33,7 +37,13 @@ export default function AlertesAdmin() {
       setAlertes(prev => prev.map(a => a.id === alerte.id ? alerte : a));
     });
 
-    return () => socket.disconnect();
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("new_alerte");
+      socket.off("alerte_resolue");
+      socket.disconnect();
+    };
   }, []);
 
   async function load() {

@@ -21,6 +21,18 @@ const getCommuneById = async (id) => {
     return result.rows[0];
 };
 
+const getCommunesByVille = async (villeId) => {
+    const result = await db.query(
+        `SELECT c.*, v.nom AS ville_nom
+         FROM communes c
+         JOIN villes v ON v.id = c.ville_id
+         WHERE c.ville_id = $1
+         ORDER BY c.nom ASC`,
+        [villeId]
+    );
+    return result.rows;
+};
+
 const createCommune = async (data) => {
     const id = uuidv4();
     const { nom, ville_id, actif } = data;
@@ -52,5 +64,6 @@ module.exports = {
     getCommuneById,
     createCommune,
     updateCommune,
-    deleteCommune
+    deleteCommune,
+    getCommunesByVille
 };

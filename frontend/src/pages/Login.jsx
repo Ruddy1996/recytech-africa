@@ -1,7 +1,9 @@
+// src/pages/Login.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { initSocket } from '../socket';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -13,27 +15,39 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
     try {
       const res = await axios.post('http://localhost:5000/api/auth/login', {
         email,
-        password
+        password,
       });
 
-      login(res.data.user, res.data.token);
+      const { user, token } = res.data;
 
-      console.log("Rôle détecté:", res.data.user.role);
+      // Stocke l'utilisateur et le token dans le contexte Auth
+      login(user, token);
+
+      console.log("Rôle détecté:", user.role);
+
+      // Initialise la connexion socket globale après login
+      const socket = initSocket();
+      socket.emit('register_user', { userId: user.id, role: user.role });
+
       // Redirection selon le rôle
-      const role = res.data.user.role;
-
-      if (role === 'Admin') {
-        navigate('/admin');
-      } else if (role === 'Autorite') {
-        navigate('/autorite');
-      } else if (role === 'user') {
-        navigate('/user');
-      } else {
-        navigate('/'); // fallback
+      switch (user.role) {
+        case 'Admin':
+          navigate('/admin');
+          break;
+        case 'Autorite':
+          navigate('/autorite');
+          break;
+        case 'user':
+          navigate('/user');
+          break;
+        default:
+          navigate('/');
       }
+
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Erreur de connexion');
@@ -57,6 +71,7 @@ export default function LoginPage() {
               className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
             />
           </div>
+
           <div>
             <label className="block mb-1 text-gray-700">Mot de passe</label>
             <input
@@ -67,6 +82,7 @@ export default function LoginPage() {
               className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
             />
           </div>
+
           <div className="text-right text-sm">
             <button
               type="button"

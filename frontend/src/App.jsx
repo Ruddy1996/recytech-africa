@@ -1,6 +1,10 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
+import { useEffect } from "react";
+
+/* Socket */
+import { initSocket } from "../src/socket";
 
 /* Layouts */
 import AdminLayout from "./layouts/AdminLayout";
@@ -33,6 +37,7 @@ import RecompensesAdmin from "./pages/RecompensesAdmin";
 import EchangesAdmin from "./pages/EchangesAdmin";
 import AlertesAdmin from "./pages/AlertesAdmin";
 import BornesAdmin from "./pages/BornesAdmin";
+import DepotsPage from "./pages/DepotsPage";
 
 /* Pages Autorité */
 import AlertesAutorite from "./pages/autorite/AlertesAutorite";
@@ -43,8 +48,27 @@ import StatistiquesAutorite from "./pages/autorite/StatistiquesAutorite";
 import RecompensesUser from "./pages/user/RecompensesUser";
 import TiragesUser from "./pages/user/TiragesUser";
 import NotificationsUser from "./pages/user/NotificationsUser";
+import { Import } from "lucide-react";
 
 function App() {
+  useEffect(() => {
+    const socket = initSocket();
+
+    // 🔔 Réception en temps réel d’un nouveau dépôt
+    socket.on("nouveau_depot", (depot) => {
+      console.log("📥 Nouveau dépôt reçu :", depot);
+
+      // Notification toast
+      toast.success(
+        `Nouveau dépôt : ${depot.poids} kg de ${depot.type_dechet} (+${depot.points} pts)`
+      );
+    });
+
+    return () => {
+      socket.off("nouveau_depot");
+    };
+  }, []);
+
   return (
     <Router>
       {/* Toutes les routes */}
@@ -72,7 +96,7 @@ function App() {
           <Route path="echanges" element={<EchangesAdmin />} />
           <Route path="alertes" element={<AlertesAdmin />} />
           <Route path="bornes" element={<BornesAdmin />} />
-          
+          <Route path="depots" element={<DepotsPage />} />
         </Route>
 
         {/* Autorité */}
@@ -97,7 +121,11 @@ function App() {
         position="top-right"
         toastOptions={{
           duration: 3000,
-          style: { background: "#fff", color: "#374151", fontSize: "0.875rem" }, // tailwind gray-700
+          style: {
+            background: "#fff",
+            color: "#374151",
+            fontSize: "0.875rem",
+          }, // tailwind gray-700
           success: { icon: "✅" },
           error: { icon: "❌" },
         }}

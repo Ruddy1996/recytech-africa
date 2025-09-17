@@ -2,7 +2,13 @@ const communeModel = require('../models/commune.model');
 
 const getCommunes = async (req, res) => {
     try {
-        const data = await communeModel.getAllCommunes();
+        const { ville_id } = req.query;
+        let data;
+        if (ville_id) {
+            data = await communeModel.getCommunesByVille(ville_id);
+        } else {
+            data = await communeModel.getAllCommunes();
+        }
         res.json(data);
     } catch (error) {
         res.status(500).json({ error: error.message });

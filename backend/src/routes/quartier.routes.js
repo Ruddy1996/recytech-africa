@@ -4,6 +4,8 @@ const quartierController = require('../controllers/quartier.controller');
 const { authenticateToken } = require('../middlewares/auth.middleware');
 const authorizeRoles = require('../middlewares/authorize.middleware');
 
+
+router.get('/by-commune', authenticateToken, authorizeRoles('Admin'), quartierController.getQuartiersByCommune); // nouveau
 router.get('/', authenticateToken, authorizeRoles('Admin'), quartierController.getQuartiers);
 router.get('/:id', authenticateToken, authorizeRoles('Admin'), quartierController.getQuartier);
 router.post('/', authenticateToken, authorizeRoles('Admin'), quartierController.createQuartier);

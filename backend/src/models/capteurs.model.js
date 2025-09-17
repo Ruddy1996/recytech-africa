@@ -1,7 +1,7 @@
 // src/models/capteurs.model.js
 const db = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
-const { sendToClients } = require('../services/websocket');
+const { sendToClients } = require('../sockets/io');
 
 const insertCapteur = async (data) => {
   const id = uuidv4();
