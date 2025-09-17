@@ -1,12 +1,19 @@
+// src/app.js
 const express = require('express');
 const cors = require('cors');
-const session = require('express-session'); // 👈 Ajouté
+const session = require('express-session');
 const path = require('path');
 require('dotenv').config();
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const passport = require('passport');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+
+// 🔥 Charger la stratégie AVANT les routes
+require('./config/passport/google.strategy');
+
+// Routes
 const adminRoutes = require('./routes/admin.routes');
 const autoriteRoutes = require('./routes/autorite.routes');
 const logRoutes = require('./routes/log.routes');
@@ -33,34 +40,41 @@ const paysRoutes = require('./routes/pays.routes');
 const villesRoutes = require('./routes/villes.routes');
 const communeRoute = require('./routes/commune.routes');
 const quartierRoutes = require('./routes/quartier.routes');
-
-// 🔥 Charger la stratégie AVANT les routes
-require('./config/passport/google.strategy');
-
-const swaggerDocument = YAML.load('./src/docs/swagger.yaml');
 const testRoutes = require('./routes/test.routes');
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 
-const helmet = require('helmet');
-
+const swaggerDocument = YAML.load('./src/docs/swagger.yaml');
 const app = express();
 
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true,
-}));
+// ✅ CORS dynamique (local + prod)
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',')
+  : ['http://localhost:5173'];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
-// 🛡️ Sessions pour Passport (obligatoire pour OAuth)
+// 🛡️ Sessions pour Passport
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'your-secret', // 👈 à mettre dans ton .env
+    secret: process.env.SESSION_SECRET || 'your-secret',
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // mettre à true en prod (HTTPS)
+      secure: process.env.NODE_ENV === 'production', // ✅ secure si HTTPS
       httpOnly: true,
     },
   })
@@ -68,7 +82,7 @@ app.use(
 
 // Initialiser Passport
 app.use(passport.initialize());
-app.use(passport.session()); // 👈 pour persister les utilisateurs connectés
+app.use(passport.session());
 
 // Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -76,6 +90,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(helmet());
 app.use(rateLimit({ windowMs: 1 * 60 * 1000, max: 100 }));
 
+// Static files
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Test route
@@ -85,7 +100,7 @@ app.get('/', (req, res) => {
 
 // Routes API
 app.use('/api/test', testRoutes);
-app.use('/api/auth', authRoutes); // Contient les routes Google
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/autorite', autoriteRoutes);
