@@ -44,7 +44,9 @@ const testRoutes = require('./routes/test.routes');
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 
-const swaggerDocument = YAML.load('./src/docs/swagger.yaml');
+// ✅ Swagger path corrigé
+const swaggerDocument = YAML.load(path.join(__dirname, 'docs', 'swagger.yaml'));
+
 const app = express();
 
 // ✅ CORS dynamique (local + prod)
@@ -74,7 +76,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production', // ✅ secure si HTTPS
+      secure: process.env.NODE_ENV === 'production', // ✅ Railway est en HTTPS → true
       httpOnly: true,
     },
   })
