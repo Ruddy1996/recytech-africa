@@ -50,9 +50,7 @@ const swaggerDocument = YAML.load(path.join(__dirname, 'docs', 'swagger.yaml'));
 const app = express();
 
 // ✅ CORS dynamique (local + prod)
-const allowedOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',')
-  : ['http://localhost:5173'];
+const allowedOrigins = process.env.FRONTEND_URL.split(',');
 
 app.use(
   cors({
