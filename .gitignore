@@ -4,6 +4,8 @@ node_modules/
 .env.production
 #dist/
 build/
+backend/.env
+backend/.env.production
 
 # React (frontend)
 frontend/node_modules/
