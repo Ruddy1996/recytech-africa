@@ -2,7 +2,7 @@
 node_modules/
 .env
 .env.production
-dist/
+#dist/
 build/
 
 # React (frontend)
