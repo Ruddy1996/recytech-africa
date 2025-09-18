@@ -27,6 +27,7 @@ import ProfilPage from "./pages/ProfilPage";
 import NotificationsAdmin from "./pages/NotificationsAdmin";
 import UsersAdmin from "./pages/UsersAdmin";
 import Clients from "./pages/ClientsPage";
+/*import Clients from "./pages/ClientsPage"; */
 import ContratsAdmin from "./pages/ContratsAdmin";
 import InterventionsAdmin from "./pages/InterventionsAdmin";
 import TiragesAdmin from "./pages/TiragesAdmin";
