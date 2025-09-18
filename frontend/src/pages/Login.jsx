@@ -1,10 +1,9 @@
 // src/pages/Login.jsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../axiosInstance';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../axiosInstance';
 import { initSocket } from '../socket';
-import { toast } from 'react-hot-toast';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -13,29 +12,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // Initialise socket dès que la page est ouverte (optionnel)
-  useEffect(() => {
-    const socket = initSocket();
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
+      // Utilise axiosInstance pour pointer sur le backend Railway
       const res = await axiosInstance.post('/auth/login', { email, password });
       const { user, token } = res.data;
 
       // Stocke l'utilisateur et le token dans le contexte Auth
       login(user, token);
 
-      // Notification toast succès
-      toast.success(`Bienvenue ${user.name} !`);
-
-      // Initialise la connexion socket après login
+      // Initialise la connexion socket globale après login
       const socket = initSocket();
       socket.emit('register_user', { userId: user.id, role: user.role });
 
@@ -53,25 +42,17 @@ export default function LoginPage() {
         default:
           navigate('/');
       }
-
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Erreur de connexion');
-      toast.error(err.response?.data?.message || 'Erreur de connexion');
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-200 to-green-500">
       <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-4 text-center text-green-600">
-          Connexion à RecyTech
-        </h1>
-        {error && (
-          <p className="text-red-500 text-sm mb-3 text-center">
-            {error}
-          </p>
-        )}
+        <h1 className="text-2xl font-bold mb-4 text-center text-green-600">Connexion à RecyTech</h1>
+        {error && <p className="text-red-500 text-sm mb-3 text-center">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
