@@ -48,7 +48,6 @@ import StatistiquesAutorite from "./pages/autorite/StatistiquesAutorite";
 import RecompensesUser from "./pages/user/RecompensesUser";
 import TiragesUser from "./pages/user/TiragesUser";
 import NotificationsUser from "./pages/user/NotificationsUser";
-import { Import } from "lucide-react";
 
 function App() {
   useEffect(() => {
@@ -83,10 +82,10 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<DashboardAdmin />} />
           <Route path="profil" element={<ProfilPage />} />
-          <Route path="Notifications" element={<NotificationsAdmin />} />
+          <Route path="notifications" element={<NotificationsAdmin />} />
           <Route path="utilisateurs" element={<UsersAdmin />} />
           <Route path="clients" element={<Clients />} />
-          <Route path="Contrats" element={<ContratsAdmin />} />
+          <Route path="contrats" element={<ContratsAdmin />} />
           <Route path="interventions" element={<InterventionsAdmin />} />
           <Route path="tirages" element={<TiragesAdmin />} />
           <Route path="paiements" element={<PaiementsAdmin />} />
@@ -120,14 +119,23 @@ function App() {
       <Toaster
         position="top-right"
         toastOptions={{
-          duration: 3000,
+          duration: 4000,
           style: {
-            background: "#fff",
-            color: "#374151",
+            background: "#f9fafb", // gray-50
+            border: "1px solid #e5e7eb", // gray-200
+            color: "#374151", // gray-700
             fontSize: "0.875rem",
-          }, // tailwind gray-700
-          success: { icon: "✅" },
-          error: { icon: "❌" },
+            borderRadius: "0.5rem",
+            padding: "0.75rem 1rem",
+          },
+          success: {
+            style: { background: "#ecfdf5", color: "#065f46" }, // vert
+            icon: "✅",
+          },
+          error: {
+            style: { background: "#fef2f2", color: "#991b1b" }, // rouge
+            icon: "❌",
+          },
         }}
       />
     </Router>
