@@ -3,7 +3,7 @@ import axios from 'axios';
 const axiosInstance = axios.create({
   //baseURL: 'http://localhost:5000/api',
   //baseURL: "https://recytech-africa-production.up.railway.app/api",
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: `${import.meta.env.VITE_API_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   }
