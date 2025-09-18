@@ -5,7 +5,7 @@ info:
   description: Documentation des routes de l'API Recytech
 
 servers:
-  - url: http://localhost:5000/api
+  - url: https://recytech-africa-production.up.railway.app/api
 
 components:
   securitySchemes:
