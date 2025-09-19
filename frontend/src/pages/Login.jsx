@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from '../api/axiosInstance';
 import { initSocket } from '../socket';
 
 export default function LoginPage() {
