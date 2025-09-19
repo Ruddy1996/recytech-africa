@@ -8,6 +8,9 @@ const axiosInstance = axios.create({
   },
 });
 
+// 👉 Debug : voir si la variable est bien injectée par Vercel
+console.log("🔗 API Base URL =", import.meta.env.VITE_API_URL);
+
 // Middleware pour ajouter le token JWT si existant
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
