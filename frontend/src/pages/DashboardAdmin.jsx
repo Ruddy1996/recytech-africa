@@ -46,7 +46,7 @@ export default function DashboardAdmin() {
   const fetchStats = async () => {
   try {
     
-    const res = await axiosInstance.get("/api/stats/global");
+    const res = await axiosInstance.get("/stats/global");
     setStats(res.data);
     
   } catch (err) {
