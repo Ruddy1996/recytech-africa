@@ -1,7 +1,7 @@
 // src/pages/DashboardAdmin.jsx
 import { useEffect, useState, Fragment } from "react";
 import { initSocket } from "../socket";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../api/axiosInstance.js";
 import {
   Users,
   MapPin,
