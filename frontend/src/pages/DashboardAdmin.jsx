@@ -1,7 +1,7 @@
 // src/pages/DashboardAdmin.jsx
 import { useEffect, useState, Fragment } from "react";
 import { initSocket } from "../socket";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance";
 import {
   Users,
   MapPin,
@@ -45,13 +45,10 @@ export default function DashboardAdmin() {
   // Fonction pour récupérer stats globales
   const fetchStats = async () => {
   try {
-    const token = localStorage.getItem("token"); // ou le nom que tu utilises
-    const res = await axios.get("/api/stats/global", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    
+    const res = await axiosInstance.get("/api/stats/global");
     setStats(res.data);
+    
   } catch (err) {
     console.error("Erreur récupération stats globales :", err);
   }
