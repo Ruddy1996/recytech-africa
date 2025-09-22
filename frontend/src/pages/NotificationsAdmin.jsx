@@ -1,6 +1,5 @@
 // src/pages/NotificationsAdmin.jsx
 import { useEffect, useState } from "react";
-import axios from "axios";
 import io from "socket.io-client";
 import toast from "react-hot-toast";
 import {
@@ -12,13 +11,13 @@ import {
   Mail
 } from "lucide-react";
 
-const BASE = "http://localhost:5000/api/notifications";          // 🔑 chemin correct
+import axiosInstance from "../api/axiosInstance"; // ✅ on utilise axiosInstance
 
 export default function NotificationsAdmin() {
   const [notifications, setNotifications] = useState([]);
   const [filters, setFilters] = useState({
-    lu: "all",          // all | read | unread
-    type: "all",        // all | info | alert …
+    lu: "all",
+    type: "all",
     q: ""
   });
 
@@ -26,8 +25,8 @@ export default function NotificationsAdmin() {
   useEffect(() => {
     loadNotifications();
 
-    // WebSocket : on reçoit les nouvelles notifs en temps réel
-    const socket = io("http://localhost:5000", {
+    // ✅ Utiliser la bonne URL backend depuis env
+    const socket = io(import.meta.env.VITE_API_URL.replace("/api", ""), {
       auth: { token: localStorage.getItem("token") }
     });
 
@@ -40,9 +39,7 @@ export default function NotificationsAdmin() {
 
   const loadNotifications = async () => {
     try {
-      const { data } = await axios.get(`${BASE}/me`, {              // ← /notifications/me
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      const { data } = await axiosInstance.get("/notifications/me"); // ✅ déjà baseURL
       setNotifications(data);
     } catch {
       toast.error("Impossible de récupérer les notifications");
@@ -52,9 +49,7 @@ export default function NotificationsAdmin() {
   /* ─────────── helpers ─────────── */
   const markAsRead = async (id) => {
     try {
-      await axios.patch(`${BASE}/${id}/lire`, {}, {                  // ← /notifications/:id/lire
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      await axiosInstance.patch(`/notifications/${id}/lire`);
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, lu: true } : n))
       );
@@ -65,9 +60,7 @@ export default function NotificationsAdmin() {
 
   const markAllAsRead = async () => {
     try {
-      await axios.patch(`${BASE}/lire-tout`, {}, {                  // ← /notifications/lire-tout
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      await axiosInstance.patch(`/notifications/lire-tout`);
       setNotifications((prev) => prev.map((n) => ({ ...n, lu: true })));
       toast.success("Toutes les notifications sont maintenant lues");
     } catch {
@@ -107,7 +100,6 @@ export default function NotificationsAdmin() {
 
       {/* filtres */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        {/* lu / non lu */}
         <div className="flex items-center gap-1 text-sm">
           <Filter size={16} />
           <select
@@ -121,7 +113,6 @@ export default function NotificationsAdmin() {
           </select>
         </div>
 
-        {/* type */}
         <select
           value={filters.type}
           onChange={(e) => setFilters({ ...filters, type: e.target.value })}
@@ -132,7 +123,6 @@ export default function NotificationsAdmin() {
           <option value="alert">Alerte</option>
         </select>
 
-        {/* recherche plein-texte */}
         <div className="relative flex-1 max-w-xs">
           <Search
             size={16}
@@ -147,7 +137,6 @@ export default function NotificationsAdmin() {
         </div>
       </div>
 
-      {/* tableau */}
       <div className="overflow-x-auto border border-green-500 rounded-lg">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-100 text-left">
