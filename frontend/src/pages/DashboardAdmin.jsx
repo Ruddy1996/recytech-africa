@@ -1,6 +1,6 @@
 // src/pages/DashboardAdmin.jsx
 import { useEffect, useState, Fragment } from "react";
-import { initSocket } from "../socket";
+import { initSocket, getSocket } from "../socket";
 import axiosInstance from "../api/axiosInstance.js";
 import {
   Users,
@@ -42,29 +42,31 @@ export default function DashboardAdmin() {
   const [alertes, setAlertes] = useState([]);
   const [alerteSelectionnee, setAlerteSelectionnee] = useState(null);
 
-  // Fonction pour récupérer stats globales
+  // 🔹 Fonction pour récupérer stats globales
   const fetchStats = async () => {
-  try {
-    
-    const res = await axiosInstance.get("/stats/global");
-    setStats(res.data);
-    
-  } catch (err) {
-    console.error("Erreur récupération stats globales :", err);
-  }
-};
+    try {
+      const res = await axiosInstance.get("/stats/global");
+      setStats(res.data);
+    } catch (err) {
+      console.error("Erreur récupération stats globales :", err);
+    }
+  };
 
-  // Récupération initiale + rafraîchissement toutes les 10s
+  // 🔹 Récupération initiale + refresh toutes les 10s
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 10000); // 10 secondes
+    const interval = setInterval(fetchStats, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  // Socket.io
+  // 🔹 Connexion Socket.io
   useEffect(() => {
-    const socket = initSocket();
+    // Initialiser une seule fois
+    initSocket();
+    const socket = getSocket();
     if (!socket) return;
+
+    console.log("📡 DashboardAdmin → socket attaché :", socket.id);
 
     socket.on("connect", () => console.log("🟢 Socket Dashboard connecté :", socket.id));
     socket.on("disconnect", (reason) => console.warn("🔴 Socket déconnecté :", reason));
@@ -81,9 +83,12 @@ export default function DashboardAdmin() {
 
     socket.on("alerte_resolue", (alerte) => {
       console.log("✅ Alerte résolue :", alerte);
-      setAlertes((prev) => prev.map((a) => (a.id === alerte.id ? alerte : a)));
+      setAlertes((prev) =>
+        prev.map((a) => (a.id === alerte.id ? alerte : a))
+      );
     });
 
+    // 🔹 Nettoyage : retirer listeners
     return () => {
       socket.off("connect");
       socket.off("disconnect");
