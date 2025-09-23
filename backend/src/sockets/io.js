@@ -1,10 +1,9 @@
-// src/sockets/io.js
 const { Server } = require("socket.io");
 
 let io;
 
 function setup(server) {
-  if (io) return io; // éviter double setup
+  if (io) return io; // Évite double setup
 
   io = new Server(server, {
     cors: {
@@ -27,11 +26,11 @@ function setup(server) {
     });
 
     socket.on("connect_error", (err) => {
-      console.error("❌ Erreur de connexion WebSocket :", err.message);
+      console.error("❌ Erreur connexion WebSocket :", err.message);
     });
 
     socket.on("disconnect", (reason) => {
-      console.log("🔴 Client déconnecté :", socket.id, "| Raison:", reason);
+      console.log("🔴 Client déconnecté :", socket.id, "| Raison :", reason);
     });
   });
 
@@ -50,17 +49,13 @@ function getIO() {
 // 🌍 Broadcast global
 function sendToClients(event, data) {
   const socketIO = getIO();
-  if (socketIO) {
-    socketIO.emit(event, data);
-  }
+  if (socketIO) socketIO.emit(event, data);
 }
 
 // 👤 Émission ciblée à un utilisateur
 function sendToUser(userId, event, data) {
   const socketIO = getIO();
-  if (socketIO) {
-    socketIO.to(`user_${userId}`).emit(event, data);
-  }
+  if (socketIO) socketIO.to(`user_${userId}`).emit(event, data);
 }
 
 module.exports = { setup, getIO, sendToClients, sendToUser };
