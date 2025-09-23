@@ -1,45 +1,53 @@
 // src/pages/NouveauMotDePasse.jsx
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from "../api/axiosInstance.js";
 
 export default function NouveauMotDePasse() {
   const [params] = useSearchParams();
-  const token = params.get('token');
+  const token = params.get("token"); // récupère ?token=xxx dans l'URL
   const navigate = useNavigate();
 
-  const [newPassword, setNewPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [message, setMessage] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [message, setMessage] = useState("");
 
   const handleReset = async (e) => {
     e.preventDefault();
 
     if (newPassword !== confirm) {
-      return setMessage('❌ Les mots de passe ne correspondent pas.');
+      return setMessage("❌ Les mots de passe ne correspondent pas.");
     }
 
     try {
-      await axios.put('http://localhost:5000/api/users/update-password-token', {
-        token,
+      await axiosInstance.put("/users/update-password-token", {
+        token,       // ⚡ on envoie bien le token ici
         newPassword,
       });
 
-      setMessage('✅ Mot de passe réinitialisé avec succès !');
-      setTimeout(() => navigate('/'), 3000);
+      setMessage("✅ Mot de passe réinitialisé avec succès !");
+      setTimeout(() => navigate("/"), 3000);
     } catch (err) {
       console.error(err);
-      setMessage(err.response?.data?.message || 'Erreur serveur.');
+      setMessage(err.response?.data?.message || "Erreur serveur.");
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-green-50">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-4 text-center text-green-600">Nouveau mot de passe</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center text-green-600">
+          Nouveau mot de passe
+        </h1>
 
         {message && (
-          <p className="text-center text-sm mb-4 text-red-500">{message}</p>
+          <p
+            className={`text-center text-sm mb-4 ${
+              message.startsWith("✅") ? "text-green-600" : "text-red-500"
+            }`}
+          >
+            {message}
+          </p>
         )}
 
         <form onSubmit={handleReset} className="space-y-4">

@@ -1,43 +1,41 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, Fragment } from "react";
-import axios            from "axios";
-import toast            from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   Plus, RefreshCw, Edit, Trash,
   ChevronsLeft, ChevronsRight
-}                       from "lucide-react";
+} from "lucide-react";
 import { Dialog, Transition } from "@headlessui/react";
+import axiosInstance from "../api/axiosInstance"; // ✅ utilise ton instance configurée
 
 /* -------------------------------------------------------------------- */
-const API       = "http://localhost:5000/api/badges";
-const UPLOAD    = "http://localhost:5000/api/upload/badge";
-const authH     = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
-
 export default function BadgesAdmin() {
   /* ───────────── state global ───────────── */
   const [badges, setBadges] = useState([]);
-  const [page,   setPage]   = useState(1);
-  const perPage             = 8;
-  const pages               = Math.max(1, Math.ceil(badges.length / perPage));
-  const slice               = badges.slice((page - 1) * perPage, page * perPage);
+  const [page, setPage] = useState(1);
+  const perPage = 8;
+  const pages = Math.max(1, Math.ceil(badges.length / perPage));
+  const slice = badges.slice((page - 1) * perPage, page * perPage);
 
   /* ───────────── modal + form ───────────── */
-  const [open,   setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [editId, setEdit] = useState(null);
-  const [form,   setForm] = useState({
+  const [form, setForm] = useState({
     nom: "", description: "", image_url: "",
     condition_type: "", condition_value: ""
   });
-  const [file, setFile]       = useState(null);
-  const [uploading, setUp]    = useState(false);
+  const [file, setFile] = useState(null);
+  const [uploading, setUp] = useState(false);
 
   /* ───────────── fetch ───────────── */
   useEffect(() => { void load(); }, []);
   async function load() {
     try {
-      const { data } = await axios.get(API, { headers: authH() });
+      const { data } = await axiosInstance.get("/badges");
       setBadges(data);
-    } catch { toast.error("Impossible de charger les badges"); }
+    } catch {
+      toast.error("Impossible de charger les badges");
+    }
   }
 
   /* ───────────── helpers ───────────── */
@@ -54,11 +52,11 @@ export default function BadgesAdmin() {
       setUp(true);
       const fd = new FormData();
       fd.append("image", file);
-      const { data } = await axios.post(UPLOAD, fd, {
-        headers: { ...authH(), "Content-Type":"multipart/form-data" }
+      const { data } = await axiosInstance.post("/upload/badge", fd, {
+        headers: { "Content-Type":"multipart/form-data" }
       });
       toast.success("Image envoyée ✔️");
-      return data.imageUrl;               // ← /uploads/badges/xxx.png
+      return data.imageUrl; // ← /uploads/badges/xxx.png
     } catch (e) {
       toast.error("Échec upload image");
       throw e;
@@ -68,13 +66,13 @@ export default function BadgesAdmin() {
   /** 💾 Création / édition */
   async function save() {
     try {
-      const image_url = await maybeUpload();     // peut lever une erreur
-      const payload   = { ...form, image_url };
+      const image_url = await maybeUpload(); // peut lever une erreur
+      const payload = { ...form, image_url };
 
-      const method    = editId ? "put"  : "post";
-      const url       = editId ? `${API}/${editId}` : API;
+      const method = editId ? "put"  : "post";
+      const url = editId ? `/badges/${editId}` : "/badges";
 
-      const { data }  = await axios[method](url, payload, { headers: authH() });
+      const { data } = await axiosInstance[method](url, payload);
 
       toast.success(editId ? "Badge mis à jour" : "Badge créé");
 
@@ -92,10 +90,12 @@ export default function BadgesAdmin() {
   async function remove(id) {
     if (!window.confirm("Supprimer ce badge ?")) return;
     try {
-      await axios.delete(`${API}/${id}`, { headers: authH() });
+      await axiosInstance.delete(`/badges/${id}`);
       setBadges(b => b.filter(x => x.id !== id));
       toast.success("Badge supprimé");
-    } catch { toast.error("Suppression impossible"); }
+    } catch {
+      toast.error("Suppression impossible");
+    }
   }
 
   /* -------------------------------------------------------------------- */
@@ -171,7 +171,7 @@ export default function BadgesAdmin() {
       {/* Pagination */}
       {pages > 1 &&
         <div className="flex justify-center gap-4 mt-5 text-sm">
-          <button disabled={page===1}    onClick={()=>setPage(p=>p-1)} className="disabled:opacity-40 hover:text-green-700"><ChevronsLeft/></button>
+          <button disabled={page===1} onClick={()=>setPage(p=>p-1)} className="disabled:opacity-40 hover:text-green-700"><ChevronsLeft/></button>
           <span>Page {page}/{pages}</span>
           <button disabled={page===pages} onClick={()=>setPage(p=>p+1)} className="disabled:opacity-40 hover:text-green-700"><ChevronsRight/></button>
         </div>
@@ -210,7 +210,7 @@ export default function BadgesAdmin() {
                 <div className="col-span-2 flex items-center gap-2">
                   <input
                     className="flex-1 border px-3 py-2 rounded"
-                    placeholder="Image URL (auto‑rempli après upload)"
+                    placeholder="Image URL (auto-rempli après upload)"
                     value={form.image_url}
                     onChange={e => setForm({ ...form, image_url: e.target.value })}
                   />

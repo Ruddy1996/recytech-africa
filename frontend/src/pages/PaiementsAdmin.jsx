@@ -1,17 +1,15 @@
 /* src/pages/PaiementsAdmin.jsx */
 import { useEffect, useState, Fragment }   from "react";
-import axios                               from "axios";
-import toast                               from "react-hot-toast";
+import axiosInstance from "../api/axiosInstance.js";
+import toast from "react-hot-toast";
 import {
   RefreshCw, ChevronsLeft, ChevronsRight, Info
 } from "lucide-react";
-import { Dialog, Transition }              from "@headlessui/react";
+import { Dialog, Transition } from "@headlessui/react";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                            */
 /* ------------------------------------------------------------------ */
-const API  = "http://localhost:5000/api/paiements-abonnements";
-const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 
 const BADGE = {
   en_attente : "bg-yellow-100 text-yellow-700",
@@ -38,9 +36,8 @@ export default function PaiementsAdmin() {
 
   async function load(){
     try{
-      const { data, headers } = await axios.get(API, {
-        params : { page, q:f.q, status:f.status },
-        headers: auth()
+      const { data, headers } = await axiosInstance.get('paiements-abonnements', {
+        params : { page, q:f.q, status:f.status }
       });
       setRows(data);
       setPages(Number(headers["x-total-pages"] || 1));

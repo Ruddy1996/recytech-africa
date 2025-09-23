@@ -1,6 +1,6 @@
 // src/pages/DepotsPage.jsx
 import { useEffect, useState, Fragment } from "react";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance.js";
 import { Dialog, Transition } from "@headlessui/react";
 import { Users, Database, Calendar } from "lucide-react";
 
@@ -21,32 +21,28 @@ export default function DepotsPage() {
   }, []);
 
   const fetchDepots = async (filters = {}) => {
-    try {
-      const token = localStorage.getItem("token");
-      const params = {
-        page: filters.page || currentPage,
-        limit: pageSize,
-        search: filters.search || searchQuery,
-      };
-      if (filters.user || filterUser) params.user = filters.user || filterUser;
-      if (filters.startDate || filterStartDate)
-        params.startDate = filters.startDate || filterStartDate;
-      if (filters.endDate || filterEndDate)
-        params.endDate = filters.endDate || filterEndDate;
+  try {
+    const params = {
+      page: filters.page || currentPage,
+      limit: pageSize,
+      search: filters.search || searchQuery,
+    };
+    if (filters.user || filterUser) params.user = filters.user || filterUser;
+    if (filters.startDate || filterStartDate)
+      params.startDate = filters.startDate || filterStartDate;
+    if (filters.endDate || filterEndDate)
+      params.endDate = filters.endDate || filterEndDate;
 
-      const res = await axios.get("/api/stats/par-jour", {
-        headers: { Authorization: `Bearer ${token}` },
-        params,
-      });
+    const res = await axiosInstance.get("/stats/par-jour", { params });
 
-      setDepots(res.data.depots || []);
-      setStats(res.data.stats || {});
-      setTotalPages(res.data.totalPages || 1);
-      setCurrentPage(res.data.currentPage || 1);
-    } catch (err) {
-      console.error("Erreur récupération dépôts :", err);
-    }
-  };
+    setDepots(res.data.depots || []);
+    setStats(res.data.stats || {});
+    setTotalPages(res.data.totalPages || 1);
+    setCurrentPage(res.data.currentPage || 1);
+  } catch (err) {
+    console.error("Erreur récupération dépôts :", err);
+  }
+};
 
   const handleFilterChange = () => {
     fetchDepots({ page: 1 });

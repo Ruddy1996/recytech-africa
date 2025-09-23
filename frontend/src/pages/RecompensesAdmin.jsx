@@ -1,5 +1,5 @@
 import { useEffect, useState, Fragment, useRef } from "react";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance.js";
 import toast from "react-hot-toast";
 import {
   Plus, RefreshCw, Edit, Trash,
@@ -25,21 +25,21 @@ export default function RecompensesAdmin() {
   /* ─────────── state ─────────── */
   const [rows, setRows] = useState([]);
   const [page, setPage] = useState(1);
-  const perPage         = 8;
-  const pages           = Math.max(1, Math.ceil(rows.length / perPage));
-  const list            = rows.slice((page - 1) * perPage, page * perPage);
+  const perPage = 8;
+  const pages = Math.max(1, Math.ceil(rows.length / perPage));
+  const list = rows.slice((page - 1) * perPage, page * perPage);
 
   /* modal + form */
   const [open, setOpen]   = useState(false);
   const [editId, setEdit] = useState(null);
   const [form, setForm]   = useState(emptyForm);
-  const fileInput         = useRef(null);
+  const fileInput = useRef(null);
 
   /* ─────────── fetch ─────────── */
   useEffect(() => { load(); }, []);
   async function load() {
     try {
-      const { data } = await axios.get(API_RECOMP, { headers: authHeader() });
+      const { data } = await axiosInstance.get("/recompense");
       setRows(data);
     } catch {
       toast.error("Impossible de charger les récompenses");
@@ -55,8 +55,8 @@ export default function RecompensesAdmin() {
     }
     try {
       const method = editId ? "put" : "post";
-      const url    = editId ? `${API_RECOMP}/${editId}` : API_RECOMP;
-      await axios[method](url, form, { headers: authHeader() });
+      const url    = editId ? `/recompense/${editId}` : API_RECOMP;
+      await axiosInstance[method](url, form);
 
       toast.success(editId ? "Récompense mise à jour" : "Récompense créée");
       setOpen(false); reset(); load();
@@ -68,7 +68,7 @@ export default function RecompensesAdmin() {
   async function remove(id) {
     if (!window.confirm("Supprimer cette récompense ?")) return;
     try {
-      await axios.delete(`${API_RECOMP}/${id}`, { headers: authHeader() });
+      await axiosInstance.delete(`/recompense/${id}`);
       setRows(r => r.filter(x => x.id !== id));
       toast.success("Supprimé");
     } catch { toast.error("Suppression impossible"); }
@@ -80,9 +80,12 @@ export default function RecompensesAdmin() {
     const fd = new FormData();
     fd.append("image", file);
     try {
-      const { data } = await axios.post(API_UPLOAD, fd, {
-        headers: { ...authHeader(), "Content-Type": "multipart/form-data" }
-      });
+    const { data } = await axiosInstance.post("/upload", fd, {
+      headers: { 
+        ...authHeader(), 
+        "Content-Type": "multipart/form-data" 
+      }
+    });
       setForm(f => ({ ...f, image_url: data.url }));
       toast.success("Image envoyée");
     } catch {

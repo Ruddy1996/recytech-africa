@@ -5,17 +5,12 @@ import {
   Trash, CheckCircle2, PauseCircle, XCircle
 } from "lucide-react";
 import { Dialog, Transition } from "@headlessui/react";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance";
 import toast from "react-hot-toast";
 
 /* ------------------------------------------------------------------ */
 /* Constantes & Helpers                                               */
 /* ------------------------------------------------------------------ */
-const API_CONTRATS = "http://localhost:5000/api/contrats";
-const API_CLIENTS  = "http://localhost:5000/api/clients";
-const API_BORNES   = "http://localhost:5000/api/borne";          // ← adapte si besoin
-
-const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 
 const STATUSES = {
   en_cours : { label: "En cours", badge: "bg-green-100 text-green-700" },
@@ -59,9 +54,8 @@ export default function ContratsAdmin() {
 
   async function load() {
     try {
-      const { data, headers } = await axios.get(API_CONTRATS, {
+      const { data, headers } = await axiosInstance.get('/contrats', {
         params : { page, ...filter },
-        headers: auth()
       });
       setRows(data);
       setPages(Number(headers["x-total-pages"] || 1));
@@ -76,8 +70,8 @@ export default function ContratsAdmin() {
     if (!clients.length) {
       try {
         const [c, b] = await Promise.all([
-          axios.get(API_CLIENTS, { headers: auth() }),
-          axios.get(API_BORNES,  { headers: auth() })
+          axiosInstance.get("/clients"),
+          axiosInstance.get("/borne")
         ]);
         setClients(c.data);
         setBornes(b.data);
@@ -90,7 +84,7 @@ export default function ContratsAdmin() {
   /* ───── Actions CRUD ───── */
   async function create() {
     try {
-      await axios.post(API_CONTRATS, form, { headers: auth() });
+      await axiosInstance.post("/contrats");
       toast.success("Contrat créé");
       setOpen(false);
       setForm({ borne_id:"", client_id:"", date_debut:"", date_fin:"", montant:"", statut:"en_cours" });
@@ -102,7 +96,7 @@ export default function ContratsAdmin() {
 
   async function changeStatus(id, statut) {
     try {
-      await axios.patch(`${API_CONTRATS}/${id}/status`, { statut }, { headers: auth() });
+      await axiosInstance.patch(`/contrats/${id}/status`, { statut });
       setRows(r => r.map(c => c.id === id ? { ...c, statut } : c));
     } catch {
       toast.error("Échec du changement de statut");
@@ -112,7 +106,7 @@ export default function ContratsAdmin() {
   async function remove(id) {
     if (!confirm("Supprimer définitivement ce contrat ?")) return;
     try {
-      await axios.delete(`${API_CONTRATS}/${id}`, { headers: auth() });
+      await axiosInstance.delete(`/contrats/${id}`);
       setRows(r => r.filter(c => c.id !== id));
     } catch {
       toast.error("Suppression impossible");

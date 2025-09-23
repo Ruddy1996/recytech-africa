@@ -1,18 +1,15 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, Fragment } from "react";
-import axios            from "axios";
-import toast            from "react-hot-toast";
+import axiosInstance from "../api/axiosInstance.js";
+import toast from "react-hot-toast";
 import {
   Plus, RefreshCw, Edit, Trash,
   ChevronsLeft, ChevronsRight
-}                       from "lucide-react";
+} from "lucide-react";
 import { Dialog, Switch, Transition } from "@headlessui/react";
 
 /* -------------------------------------------------------------------- */
 /* Helpers                                                              */
-/* -------------------------------------------------------------------- */
-const API   = "http://localhost:5000/api/plans";
-const authH = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
+/* -------------------------------------------------------------------- *
 
 /* -------------------------------------------------------------------- */
 /* Component                                                            */
@@ -21,9 +18,9 @@ export default function PlansAdmin() {
   /* ─────────── state ─────────── */
   const [plans, setPlans] = useState([]);
   const [page, setPage]   = useState(1);
-  const perPage           = 8;
-  const pages             = Math.max(1, Math.ceil(plans.length / perPage));
-  const slice             = plans.slice((page - 1) * perPage, page * perPage);
+  const perPage = 8;
+  const pages = Math.max(1, Math.ceil(plans.length / perPage));
+  const slice = plans.slice((page - 1) * perPage, page * perPage);
 
   /* Modal (création / édition) */
   const [open, setOpen]   = useState(false);
@@ -33,9 +30,9 @@ export default function PlansAdmin() {
     description:  "",
     prix_mensuel: "",
     nb_utilisateurs: "",
-    acces_data:      true,
-    acces_alertes:   true,
-    acces_export:    false,
+    acces_data: true,
+    acces_alertes: true,
+    acces_export: false,
   });
 
   /* ─────────── fetch ─────────── */
@@ -43,7 +40,7 @@ export default function PlansAdmin() {
 
   async function fetchPlans() {
     try {
-      const { data } = await axios.get(API, { headers: authH() });
+      const { data } = await axiosInstance.get("/plans");
       setPlans(data);
     } catch {
       toast.error("Impossible de charger les plans");
@@ -62,9 +59,9 @@ export default function PlansAdmin() {
 
   async function savePlan() {
     const method   = editId ? "put" : "post";
-    const endpoint = editId ? `${API}/${editId}` : API;
+    const endpoint = editId ? `/plans/${editId}` : "/plans";
     try {
-      const { data } = await axios[method](endpoint, form, { headers: authH() });
+      const { data } = await axiosInstance[method](endpoint, form);
       toast.success(editId ? "Plan mis à jour" : "Plan créé");
       setOpen(false);
       resetForm();
@@ -82,7 +79,7 @@ export default function PlansAdmin() {
   async function removePlan(id) {
     if (!window.confirm("Supprimer ce plan ?")) return;
     try {
-      await axios.delete(`${API}/${id}`, { headers: authH() });
+      await axiosInstance.delete(`/plans/${id}`);
       setPlans(p => p.filter(pl => pl.id !== id));
       toast.success("Plan supprimé");
     } catch {

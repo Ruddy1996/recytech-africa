@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, Fragment } from "react";
-import axios     from "axios";
-import toast     from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   Plus, RefreshCw, Trash,
   ToggleLeft, ToggleRight,
@@ -9,22 +8,20 @@ import {
   ScanLine
 } from "lucide-react";
 import { Dialog, Transition } from "@headlessui/react";
+import axiosInstance from "../api/axiosInstance";   // ✅ utilise ton instance
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                            */
 /* ------------------------------------------------------------------ */
-const API        = "http://localhost:5000/api/users";
-const authHeader = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
-
+const API = "/users";  // ✅ plus besoin de localhost, axiosInstance ajoute le baseURL
 /* ------------------------------------------------------------------ */
 /* Component                                                          */
 /* ------------------------------------------------------------------ */
 export default function UsersAdmin() {
-  /* ─────────── state ─────────── */
-  const [users, setUsers]         = useState([]);
-  const [page,  setPage]          = useState(1);
-  const [totalPages, setTotal]    = useState(1);
-  const [q, setQ]                 = useState("");
+  const [users, setUsers] = useState([]);
+  const [page,  setPage] = useState(1);
+  const [totalPages, setTotal] = useState(1);
+  const [q, setQ] = useState("");
 
   const [openCreate, setOpenCreate] = useState(false);
   const [newUser, setNewUser]       = useState({
@@ -40,11 +37,10 @@ export default function UsersAdmin() {
 
   const fetchUsers = async () => {
     try {
-      const { data, headers } = await axios.get(API, {
+      const { data, headers } = await axiosInstance.get(API, {
         params  : { page, q },
-        headers : authHeader()
       });
-      setUsers(data);                                // contient `active`
+      setUsers(data);
       setTotal(Number(headers["x-total-pages"] || 1));
     } catch {
       toast.error("Impossible de charger la liste d’utilisateurs");
@@ -54,10 +50,9 @@ export default function UsersAdmin() {
   /* ─────────── actions ─────────── */
   const toggleActive = async (id, active) => {
     try {
-      await axios.patch(
+      await axiosInstance.patch(
         `${API}/${id}/active`,
-        { active: !active },
-        { headers: authHeader() }
+        { active: !active }
       );
       setUsers(prev =>
         prev.map(u => u.id === id ? { ...u, active: !active } : u)
@@ -69,9 +64,9 @@ export default function UsersAdmin() {
   };
 
   const remove = async id => {
-    if (!window.confirm("Supprimer cet utilisateur ?")) return;
+    if (!window.confirm("Supprimer cet utilisateur ?")) return;
     try {
-      await axios.delete(`${API}/${id}`, { headers: authHeader() });
+      await axiosInstance.delete(`${API}/${id}`);
       setUsers(prev => prev.filter(u => u.id !== id));
       toast.success("Utilisateur supprimé");
     } catch {
@@ -81,7 +76,7 @@ export default function UsersAdmin() {
 
   const createUser = async () => {
     try {
-      const { data } = await axios.post(API, newUser, { headers: authHeader() });
+      const { data } = await axiosInstance.post(API, newUser);
       setUsers(p => [data, ...p]);
       setOpenCreate(false);
       setNewUser({ full_name: "", email: "", password: "", role: "User" });
@@ -94,15 +89,15 @@ export default function UsersAdmin() {
   const linkNfc = async () => {
     if (!nfcUid.trim()) return toast.error("Veuillez saisir l’UID");
     try {
-      await axios.post(
+      await axiosInstance.post(
         `${API}/${currentId}/link-nfc`,
-        { nfc_uid: nfcUid },
-        { headers: authHeader() }
+        { nfc_uid: nfcUid }
       );
       setUsers(prev =>
         prev.map(u => u.id === currentId ? { ...u, nfc_uid: nfcUid } : u)
       );
-      setOpenNfc(false);  setNfcUid("");
+      setOpenNfc(false);  
+      setNfcUid("");
       toast.success("Carte NFC liée");
     } catch (e) {
       toast.error(e.response?.data?.message || "Erreur de liaison NFC");

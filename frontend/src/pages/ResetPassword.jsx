@@ -1,30 +1,36 @@
 // src/pages/ResetPassword.jsx
 import { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance.js";
 
 export default function ResetPassword() {
-  const [email, setEmail] = useState('');
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
 
   const handleReset = async (e) => {
     e.preventDefault();
-    setSuccess('');
-    setError('');
+    setSuccess("");
+    setError("");
+
     try {
-      await axios.post('http://localhost:5000/api/users/reset-password', { email });
-      setSuccess("Un lien de réinitialisation a été envoyé à votre adresse e-mail.");
+      await axiosInstance.post("/users/reset-password", { email });
+      setSuccess("✅ Un lien de réinitialisation a été envoyé à votre adresse e-mail.");
     } catch (err) {
-      setError(err.response?.data?.message || 'Une erreur est survenue.');
+      console.error(err);
+      setError(err.response?.data?.message || "❌ Une erreur est survenue.");
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-green-100">
       <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-4 text-center text-green-600">Réinitialisation du mot de passe</h2>
+        <h2 className="text-2xl font-semibold mb-4 text-center text-green-600">
+          Réinitialisation du mot de passe
+        </h2>
+
         {success && <p className="text-green-600 text-sm mb-4">{success}</p>}
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
         <form onSubmit={handleReset}>
           <label className="block mb-2 text-gray-700">Adresse e-mail</label>
           <input

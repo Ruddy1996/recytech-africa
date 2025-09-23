@@ -1,18 +1,9 @@
 // src/pages/BornesAdmin.jsx
 import { useEffect, useState, Fragment } from "react";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance";
 import { Dialog, Transition } from "@headlessui/react";
 import { Pencil, PlusCircle } from "lucide-react";
 import { initSocket } from "../socket";
-
-const API = "http://localhost:5000/api/borne";
-const PAYS_API = "http://localhost:5000/api/pays";
-const VILLE_API = "http://localhost:5000/api/villes";
-const COMMUNE_API = "http://localhost:5000/api/commune";
-const QUARTIER_API = "http://localhost:5000/api/quartiers";
-const CLIENT_API = "http://localhost:5000/api/clients";
-
-const authH = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 
 export default function BornesAdmin() {
   const [bornes, setBornes] = useState([]);
@@ -74,7 +65,7 @@ export default function BornesAdmin() {
 
   async function loadBornes() {
     try {
-      const { data } = await axios.get(API, { headers: authH() });
+      const { data } = await axiosInstance.get("/borne");
       setBornes(data);
     } catch (error) {
       console.error(error);
@@ -83,7 +74,7 @@ export default function BornesAdmin() {
 
   async function loadPays() {
     try {
-      const { data } = await axios.get(PAYS_API, { headers: authH() });
+      const { data } = await axiosInstance.get("/pays");
       setPaysList(data);
     } catch (error) {
       console.error(error);
@@ -96,9 +87,7 @@ export default function BornesAdmin() {
         setVillesList([]);
         return;
       }
-      const { data } = await axios.get(`${VILLE_API}?pays_id=${pays_id}`, {
-        headers: authH(),
-      });
+      const { data } = await axiosInstance.get(`/villes?pays_id=${pays_id}`);
       setVillesList(data);
     } catch (error) {
       console.error(error);
@@ -111,9 +100,7 @@ export default function BornesAdmin() {
         setCommunesList([]);
         return;
       }
-      const { data } = await axios.get(`${COMMUNE_API}?ville_id=${ville_id}`, {
-        headers: authH(),
-      });
+      const { data } = await axiosInstance.get(`/commune?ville_id=${ville_id}`);
       setCommunesList(data);
     } catch (error) {
       console.error(error);
@@ -126,10 +113,7 @@ export default function BornesAdmin() {
         setQuartiers([]);
         return;
       }
-      const { data } = await axios.get(
-        `${QUARTIER_API}/by-commune?commune_id=${commune_id}`,
-        { headers: authH() }
-      );
+      const { data } = await axiosInstance.get(`/quartiers/by-commune?commune_id=${commune_id}`);
       setQuartiers(data);
     } catch (error) {
       console.error(error);
@@ -138,7 +122,7 @@ export default function BornesAdmin() {
 
   async function loadClients() {
     try {
-      const { data } = await axios.get(CLIENT_API, { headers: authH() });
+      const { data } = await axiosInstance.get("/clients");
       setClients(data);
     } catch (error) {
       console.error(error);
@@ -147,7 +131,7 @@ export default function BornesAdmin() {
 
   async function saveUpdate() {
     try {
-      await axios.put(`${API}/${selected.id}`, form, { headers: authH() });
+      await axiosInstance.put(`/borne/${selected.id}`, form);
       setSelected(null);
       setModalAddOpen(false);
     } catch (error) {
@@ -163,7 +147,7 @@ export default function BornesAdmin() {
         client_id: form.client_id || null,
       };
       console.log("Payload envoyé :", payload);
-      await axios.post(API, payload, { headers: authH() });
+      await axiosInstance.post("/borne", payload);
       setModalAddOpen(false);
       setForm({
         code: "",

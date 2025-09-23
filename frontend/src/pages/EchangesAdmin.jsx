@@ -1,14 +1,11 @@
 import { useEffect, useState, Fragment } from "react";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance.js";
 import toast from "react-hot-toast";
 import {
   RefreshCw, Eye, Trash, ChevronsLeft, ChevronsRight, Check, X
 } from "lucide-react";
 import { Dialog, Transition } from "@headlessui/react";
 
-const API = "http://localhost:5000/api/echanges";
-const API_POINTS = "http://localhost:5000/api/points";
-const authH = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 
 const STATUS_COLORS = {
   "en_attente": "bg-yellow-100 text-yellow-800",
@@ -30,7 +27,7 @@ export default function EchangesAdmin() {
 
   async function load() {
     try {
-      const { data } = await axios.get(API, { headers: authH() });
+      const { data } = await axiosInstance.get("/echanges");
       setRows(data);
     } catch {
       toast.error("Erreur chargement des échanges");
@@ -39,7 +36,7 @@ export default function EchangesAdmin() {
 
   async function updateStatut(id, statut) {
     try {
-      await axios.patch(`${API}/${id}/statut`, { statut }, { headers: authH() });
+      await axiosInstance.patch(`/echanges/${id}/statut`, { statut });
       toast.success("Statut mis à jour");
       setRows(r => r.map(e => e.id === id ? { ...e, statut } : e));
     } catch {
@@ -50,7 +47,7 @@ export default function EchangesAdmin() {
   async function remove(id) {
     if (!confirm("Supprimer définitivement cet échange ?")) return;
     try {
-      await axios.delete(`${API}/${id}`, { headers: authH() });
+      await axiosInstance.delete(`echanges/${id}`);
       setRows(r => r.filter(e => e.id !== id));
       toast.success("Échange supprimé");
     } catch {
@@ -61,9 +58,7 @@ export default function EchangesAdmin() {
   async function voirDetails(echange) {
     setSelected(echange);
     try {
-      const { data } = await axios.get(`${API_POINTS}/${echange.user_id}/history`, {
-        headers: authH(),
-      });
+      const { data } = await axiosInstance.get(`/points/${echange.user_id}/history`);
       setPoints(data);
     } catch {
       toast.error("Erreur chargement historique points");

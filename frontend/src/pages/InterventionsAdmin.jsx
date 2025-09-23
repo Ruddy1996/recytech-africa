@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { Fragment, useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance.js";
 import toast from "react-hot-toast";
 import {
   Plus, RefreshCw,
@@ -13,9 +13,7 @@ import { Dialog, Transition } from "@headlessui/react";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                            */
-/* ------------------------------------------------------------------ */
-const API  = "http://localhost:5000/api/intervention-borne";
-const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
+/* ------------------------------------------------------------------ *
 
 /* Statuts disponibles + badges ------------------------------------- */
 const STATUTS = {
@@ -53,9 +51,8 @@ export default function InterventionsAdmin() {
 
   async function load() {
     try {
-      const { data, headers } = await axios.get(API, {
-        params : { page, q:filt.q, statut:filt.statut },
-        headers: auth()
+      const { data, headers } = await axiosInstance.get('/intervention-borne', {
+        params : { page, q:filt.q, statut:filt.statut }
       });
       setRows(data);
       setPages(Number(headers["x-total-pages"]||1));
@@ -65,7 +62,7 @@ export default function InterventionsAdmin() {
   async function loadBornes() {
     /* vous avez sûrement déjà un endpoint /api/borne */
     try {
-      const { data } = await axios.get("http://localhost:5000/api/borne?limit=1000", { headers: auth() });
+      const { data } = await axiosInstance.get("/borne?limit=1000");
       setBornes(data);
     } catch {/* silent */}
   }
@@ -73,7 +70,7 @@ export default function InterventionsAdmin() {
   /* -------------------- actions ------------------ */
   async function create() {
     try {
-      await axios.post(API, form, { headers: auth() });
+      await axiosInstance.post('/intervention-borne', form);
       toast.success("Intervention créée");
       setOpen(false);
       setForm({ borne_id:"", type_intervention:TYPES[0], description:"",
@@ -86,7 +83,7 @@ export default function InterventionsAdmin() {
 
   async function changeStatut(id, statut) {
     try {
-      await axios.put(`${API}/${id}`, { statut }, { headers: auth() });
+      await axiosInstance.put(`/intervention-borne/${id}`, { statut });
       setRows(r => r.map(i => i.id===id ? { ...i, statut } : i));
     } catch {
       toast.error("Changement de statut impossible");
@@ -96,7 +93,7 @@ export default function InterventionsAdmin() {
   async function remove(id) {
     if (!confirm("Supprimer cette intervention ?")) return;
     try {
-      await axios.delete(`${API}/${id}`, { headers: auth() });
+      await axiosInstance.delete(`/intervention-borne/${id}`);
       setRows(r => r.filter(i => i.id!==id));
     } catch { toast.error("Suppression impossible"); }
   }

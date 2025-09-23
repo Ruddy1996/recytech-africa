@@ -1,18 +1,15 @@
 /* src/pages/AlertesAdmin.jsx */
 import { useEffect, useState, Fragment } from "react";
-import axios from "axios";
 import toast from "react-hot-toast";
 import { CheckCircle, RefreshCw } from "lucide-react";
 import { Dialog, Transition } from "@headlessui/react";
-import { initSocket } from '../socket'; // ✅ import correct
-
-const API = "http://localhost:5000/api/alerte-borne";
-const authH = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
+import { initSocket } from "../socket"; 
+import axiosInstance from "../api/axiosInstance"; // ✅ on utilise axiosInstance
 
 const COULEURS = {
-  "info": "bg-blue-100 text-blue-800",
-  "warning": "bg-yellow-100 text-yellow-800",
-  "danger": "bg-red-100 text-red-700"
+  info: "bg-blue-100 text-blue-800",
+  warning: "bg-yellow-100 text-yellow-800",
+  danger: "bg-red-100 text-red-700",
 };
 
 export default function AlertesAdmin() {
@@ -30,11 +27,11 @@ export default function AlertesAdmin() {
 
     socket.on("new_alerte", (alerte) => {
       toast.success("Nouvelle alerte reçue");
-      setAlertes(prev => [alerte, ...prev]);
+      setAlertes((prev) => [alerte, ...prev]);
     });
 
     socket.on("alerte_resolue", (alerte) => {
-      setAlertes(prev => prev.map(a => a.id === alerte.id ? alerte : a));
+      setAlertes((prev) => prev.map((a) => (a.id === alerte.id ? alerte : a)));
     });
 
     return () => {
@@ -48,7 +45,7 @@ export default function AlertesAdmin() {
 
   async function load() {
     try {
-      const { data } = await axios.get(API, { headers: authH() });
+      const { data } = await axiosInstance.get("/alerte-borne"); // ✅ appel via axiosInstance
       setAlertes(data);
     } catch {
       toast.error("Erreur chargement alertes");
@@ -57,7 +54,7 @@ export default function AlertesAdmin() {
 
   async function marquerResolue(id) {
     try {
-      await axios.patch(`${API}/${id}/resolve`, {}, { headers: authH() });
+      await axiosInstance.patch(`/alerte-borne/${id}/resolve`); // ✅ appel via axiosInstance
       toast.success("Alerte résolue");
     } catch {
       toast.error("Erreur résolution");
@@ -77,14 +74,19 @@ export default function AlertesAdmin() {
         {alertes.map((a) => (
           <div
             key={a.id}
-            className={`p-4 border rounded shadow-sm ${COULEURS[a.niveau] || 'bg-gray-100 text-gray-700'}`}
+            className={`p-4 border rounded shadow-sm ${
+              COULEURS[a.niveau] || "bg-gray-100 text-gray-700"
+            }`}
             onClick={() => setSelected(a)}
           >
             <div className="flex justify-between">
               <strong>{a.type_alerte}</strong>
               {!a.est_resolue && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); marquerResolue(a.id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    marquerResolue(a.id);
+                  }}
                   className="text-green-600 hover:text-green-800 flex items-center gap-1 text-sm"
                 >
                   <CheckCircle size={14} /> Résoudre
@@ -93,7 +95,8 @@ export default function AlertesAdmin() {
             </div>
             <p className="text-sm mt-1">{a.message}</p>
             <p className="text-xs mt-1 italic text-gray-500">
-              Créée le {new Date(a.created_at).toLocaleString()} {a.est_resolue && ` - Résolue`}
+              Créée le {new Date(a.created_at).toLocaleString()}{" "}
+              {a.est_resolue && ` - Résolue`}
             </p>
           </div>
         ))}
@@ -118,13 +121,31 @@ export default function AlertesAdmin() {
             <Dialog.Panel className="w-full max-w-md bg-white p-6 shadow-lg overflow-y-auto">
               {selected && (
                 <>
-                  <Dialog.Title className="text-lg font-semibold mb-2">Détails de l’alerte</Dialog.Title>
-                  <p><strong>Type :</strong> {selected.type_alerte}</p>
-                  <p><strong>Message :</strong> {selected.message}</p>
-                  <p><strong>Niveau :</strong> {selected.niveau}</p>
-                  <p><strong>Borne ID :</strong> {selected.borne_id}</p>
-                  <p><strong>Créé le :</strong> {new Date(selected.created_at).toLocaleString()}</p>
-                  {selected.est_resolue && <p><strong>Résolue le :</strong> {new Date(selected.resolved_at).toLocaleString()}</p>}
+                  <Dialog.Title className="text-lg font-semibold mb-2">
+                    Détails de l’alerte
+                  </Dialog.Title>
+                  <p>
+                    <strong>Type :</strong> {selected.type_alerte}
+                  </p>
+                  <p>
+                    <strong>Message :</strong> {selected.message}
+                  </p>
+                  <p>
+                    <strong>Niveau :</strong> {selected.niveau}
+                  </p>
+                  <p>
+                    <strong>Borne ID :</strong> {selected.borne_id}
+                  </p>
+                  <p>
+                    <strong>Créé le :</strong>{" "}
+                    {new Date(selected.created_at).toLocaleString()}
+                  </p>
+                  {selected.est_resolue && (
+                    <p>
+                      <strong>Résolue le :</strong>{" "}
+                      {new Date(selected.resolved_at).toLocaleString()}
+                    </p>
+                  )}
                 </>
               )}
             </Dialog.Panel>

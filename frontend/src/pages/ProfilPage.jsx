@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance.js";
 import toast from "react-hot-toast";
 import { Pencil, Save, Lock } from "lucide-react";
 
@@ -19,9 +19,7 @@ export default function ProfilPage() {
 
   const handleUpdate = async () => {
   try {
-    const res = await axios.put("http://localhost:5000/api/users/me", formData, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
+    const res = await axiosInstance.put('/users/me', formData);
     // Mise à jour du contexte et du localStorage
     localStorage.setItem("user", JSON.stringify(res.data));
     setUser(res.data);
@@ -37,9 +35,7 @@ export default function ProfilPage() {
 
   const handleChangePassword = async () => {
     try {
-      await axios.put("http://localhost:5000/api/users/update-password", passwordData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      await axiosInstance.put('/users/update-password', passwordData);
       setPasswordData({ oldPassword: "", newPassword: "" });
       setShowPasswordForm(false);
       toast.success("🔒 Mot de passe mis à jour");

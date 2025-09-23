@@ -1,7 +1,7 @@
 /* src/pages/ClientsAdmin.jsx */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, Fragment } from 'react';
-import axios from 'axios';
+import axiosInstance from "../api/axiosInstance";
 import toast from 'react-hot-toast';
 
 import {
@@ -18,10 +18,6 @@ import { Dialog, Transition } from '@headlessui/react';
 /* ------------------------------------------------------------------ */
 /* Helpers                                                            */
 /* ------------------------------------------------------------------ */
-const API = 'http://localhost:5000/api/clients';
-const auth = () => ({
-  Authorization: `Bearer ${localStorage.getItem('token')}`,
-});
 
 /* ------------------------------------------------------------------ */
 /* Component                                                          */
@@ -56,13 +52,12 @@ export default function ClientsAdmin() {
 
   const fetchClients = async () => {
     try {
-      const { data, headers } = await axios.get(API, {
+      const { data, headers } = await axiosInstance.get('/clients', {
         params: {
           page,
           q,
           type: typeFilter !== 'all' ? typeFilter : undefined,
         },
-        headers: auth(),
       });
       setClients(data);
       setTotal(Number(headers['x-total-pages'] || 1));
@@ -70,7 +65,6 @@ export default function ClientsAdmin() {
       toast.error("Impossible de charger la liste d’utilisateurs");
     }
   };
-
   /* ─────────── CRUD helpers ─────────── */
   const openCreate = () => {
     setIsEdit(false);
@@ -92,14 +86,16 @@ export default function ClientsAdmin() {
   };
 
   const saveClient = async () => {
-    const method = isEdit ? 'put' : 'post';
-    const url = isEdit ? `${API}/${currentId}` : API;
     try {
-      const { data } = await axios[method](url, form, { headers: auth() });
+      let data;
       if (isEdit) {
+        const res = await axiosInstance.put(`/clients/${currentId}`, form);
+        data = res.data;
         setClients((prev) => prev.map((c) => (c.id === currentId ? data : c)));
         toast.success('Client mis à jour');
       } else {
+        const res = await axiosInstance.post('/clients', form);
+        data = res.data;
         setClients((prev) => [data, ...prev]);
         toast.success('Client créé 🎉');
       }
@@ -112,7 +108,7 @@ export default function ClientsAdmin() {
   const remove = async (id) => {
     if (!window.confirm('Supprimer ce client ?')) return;
     try {
-      await axios.delete(`${API}/${id}`, { headers: auth() });
+      await axiosInstance.delete(`/clients/${id}`);
       setClients((prev) => prev.filter((c) => c.id !== id));
       toast.success('Client supprimé');
     } catch {
