@@ -6,13 +6,17 @@ function setup(server) {
   if (io) return io; // Évite double setup
 
   io = new Server(server, {
-    cors: {
-      origin: process.env.FRONTEND_URL?.split(",") || ["http://localhost:5173"],
-      methods: ["GET", "POST"],
-      credentials: true,
-    },
-    transports: ["websocket", "polling"],
-  });
+  path: "/socket.io/", // <--- ajoute ça
+  cors: {
+    origin: (process.env.FRONTEND_URL || "")
+      .split(",")
+      .map(url => url.trim())
+      .filter(Boolean),
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  transports: ["websocket", "polling"],
+});
 
   io.on("connection", (socket) => {
     console.log("🟢 Client WebSocket connecté :", socket.id);

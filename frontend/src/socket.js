@@ -18,6 +18,7 @@ export function initSocket() {
 
     socket = io(SOCKET_URL, {
       path: "/socket.io",
+      autoConnect: true,
       transports: ["websocket", "polling"], // websocket si possible, sinon polling
       withCredentials: true,
       secure: SOCKET_URL.startsWith("https"), // true pour HTTPS
