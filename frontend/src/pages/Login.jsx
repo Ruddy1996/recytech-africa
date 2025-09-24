@@ -31,7 +31,7 @@ export default function LoginPage() {
       // Redirection selon le rôle
       switch (user.role) {
         case 'Admin':
-          navigate('/Admin');
+          navigate('/admin');
           break;
         case 'Autorite':
           navigate('/autorite');
