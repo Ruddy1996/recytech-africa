@@ -45,7 +45,12 @@ export default function DashboardAdmin() {
   // 🔹 Fonction pour récupérer stats globales
   const fetchStats = async () => {
     try {
-      const res = await axiosInstance.get("/stats/global");
+      const token = localStorage.getItem("token");
+      const res = await axiosInstance.get("/stats/global",{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
       setStats(res.data);
     } catch (err) {
       console.error("Erreur récupération stats globales :", err);
