@@ -44,17 +44,23 @@ const testRoutes = require('./routes/test.routes');
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 
-// ✅ Swagger path corrigé
+// ✅ Swagger
 const swaggerDocument = YAML.load(path.join(__dirname, 'docs', 'swagger.yaml'));
 
 const app = express();
 
 // ✅ CORS dynamique (local + prod)
-const allowedOrigins = process.env.FRONTEND_URL.split(',');
+const allowedOrigins = process.env.FRONTEND_URL.split(','); // ajouter tous les frontends ici
 
 app.use(
   cors({
-    origin: '*', // juste pour tester
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
@@ -68,18 +74,21 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production', // ✅ Railway est en HTTPS → true
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
     },
   })
 );
 
-// Initialiser Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Swagger
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// Swagger UI accessible en prod et local
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+  swaggerOptions: {
+    persistAuthorization: true, // garde le token JWT après refresh
+  },
+}));
 
 app.use(helmet());
 app.use(rateLimit({ windowMs: 1 * 60 * 1000, max: 100 }));
