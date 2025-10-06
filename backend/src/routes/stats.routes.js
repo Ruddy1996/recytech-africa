@@ -6,13 +6,13 @@ const { authenticateToken } = require('../middlewares/auth.middleware');
 const authorize = require('../middlewares/authorize.middleware');
 
 // Stats globales (admin uniquement)
-router.get('/global', authenticateToken, authorize('Admin'), StatsController.globalStats);
+router.get('/global', authenticateToken, StatsController.globalStats);
 
 // Stats utilisateur (admin ou mobile user)
 router.get('/users/:id', authenticateToken, StatsController.userStats);
 
 // Stats bornes (admin)
-router.get('/bornes', authenticateToken, authorize('Admin'), StatsController.statsParBorne);
+router.get('/bornes', authenticateToken, StatsController.statsParBorne);
 
 // Stats dépôts (admin)
 router.get('/par-jour', authenticateToken, authorize('Admin'), StatsController.depotsParJour);
